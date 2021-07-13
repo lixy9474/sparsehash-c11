@@ -4,7 +4,7 @@ CPPFLAGS += -I$(TEST_DIR) -I. -isystem $(TEST_DIR)/gtest
 CXXFLAGS += -Wall -Wextra -Wpedantic -Wno-missing-field-initializers -std=c++11 -O3 -D_SPARSEHASH_CI_TESTING_ ${_CXXFLAGS}
 LDFLAGS += -lpthread
 
-all : sparsehash_unittests bench
+all : sparsehash_unittests bench bench_lockless
 
 check : all
 	./sparsehash_unittests
@@ -15,7 +15,13 @@ clean :
 bench.o : $(TEST_DIR)/bench.cc
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(TEST_DIR)/bench.cc
 
+bench_lockless.o : $(TEST_DIR)/bench_lockless.cc
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(TEST_DIR)/bench_lockless.cc
+
 bench: bench.o
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
+
+bench_lockless: bench_lockless.o
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
 gmock-gtest-all.o :
@@ -39,9 +45,12 @@ hashtable_unittests.o: $(TEST_DIR)/hashtable_unittests.cc
 hashtable_c11_unittests.o: $(TEST_DIR)/hashtable_c11_unittests.cc
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(TEST_DIR)/hashtable_c11_unittests.cc
 
+dense_hash_map_unittests.o: $(TEST_DIR)/dense_hash_map_unittests.cc
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(TEST_DIR)/dense_hash_map_unittests.cc
+
 testmain.o : $(TEST_DIR)/*.cc
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(TEST_DIR)/testmain.cc
 
-sparsehash_unittests : simple_unittests.o sparsetable_unittests.o allocator_unittests.o hashtable_unittests.o hashtable_c11_unittests.o fixture_unittests.o testmain.o gmock-gtest-all.o
+sparsehash_unittests : simple_unittests.o sparsetable_unittests.o allocator_unittests.o hashtable_unittests.o hashtable_c11_unittests.o fixture_unittests.o dense_hash_map_unittests.o testmain.o gmock-gtest-all.o
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
